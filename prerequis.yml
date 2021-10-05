@@ -1,0 +1,5 @@
+- name: Conversion du fichier CSV en format linux
+  command: dos2unix {{ FICHIER_CSV }}
+  args:
+    removes: "{{ FICHIER_CSV }}"
+  delegate_to: localhost

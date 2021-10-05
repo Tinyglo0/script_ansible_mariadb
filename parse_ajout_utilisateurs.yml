@@ -1,0 +1,37 @@
+---
+- hosts: all
+  gather_facts: no
+  become: yes
+  vars_files: 
+    - ./variables_connexion.yml
+  tasks:
+    - name: Installe le paquet dos2unix s'il n'est pas présent.
+      apt:
+        name: dos2unix
+        state: present
+      delegate_to: localhost
+
+    - name: Appel du fichier prérequis pour formatter correctement le fichier {{ FICHIER_CSV }}
+      include_tasks: prerequis.yml
+
+    - name: Chargement des données depuis le fichier CSV
+      read_csv:
+        path: "{{ FICHIER_CSV }}"
+        delimiter: ';'
+      register: users
+      delegate_to: localhost
+
+    - name: Ajout des utilisateurs du fichiers hosts.csv
+      mysql_user:
+        name: "{{ user.identifiant }}"
+        password: "{{ user.mdp }}"
+        state: present
+        priv: '{{ user.identifiant }}\_%.*:ALL'
+        login_user: "{{ ROOT_MYSQL }}" 
+        login_password: "{{ PASSWORD_MYSQL }}"
+        host: "%"       
+      loop: "{{ users.list }}"
+      loop_control:
+        loop_var: user
+
+...

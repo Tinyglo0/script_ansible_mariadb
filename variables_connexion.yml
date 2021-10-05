@@ -1,0 +1,7 @@
+---
+
+ROOT_MYSQL: 
+PASSWORD_MYSQL: 
+FICHIER_CSV: hosts.csv
+
+...

@@ -1,0 +1,48 @@
+---
+- hosts: all
+  gather_facts: no
+  vars_files: 
+    - ./variables_connexion.yml
+  tasks:
+
+    - name: Conversion du fichier CSV en format linux
+      command: dos2unix {{ FICHIER_CSV }}
+      args:
+        removes: "{{ FICHIER_CSV }}"
+      delegate_to: localhost
+    
+    - name: Appel du fichier prérequis pour formatter correctement le fichier {{ FICHIER_CSV }}
+      include_tasks: prerequis.yml
+
+    - name: "Chargement des données depuis le fichier CSV"
+      read_csv:
+        path: "{{ FICHIER_CSV }}"
+        delimiter: ';'
+      register: users
+      delegate_to: localhost
+      
+    - name: Suppression de l'utilsateur des utilisateurs du fichiers hosts.csv
+      mysql_user:
+        login_user: "{{ ROOT_MYSQL }}" 
+        login_password: "{{ PASSWORD_MYSQL }}"
+        user: "{{ user.identifiant }}"
+        host: "%"
+        state: absent        
+      loop: "{{ users.list }}"
+      loop_control:
+        loop_var: user
+
+    - name: Liste des BDD des utilisateurs issus du fichiers hosts.csv
+      mysql_query:
+        login_user: "{{ ROOT_MYSQL }}"
+        login_password: "{{ PASSWORD_MYSQL }}"
+        query: SHOW DATABASES;
+      register: BDD
+
+    - name: Récupération des BDD des utilisateurs issus du fichiers hosts.csv
+      include_tasks: suppression_bdd.yml
+      loop: "{{ BDD.query_result|flatten(levels=1) }}"
+      loop_control:
+        loop_var: item_db
+      
+...

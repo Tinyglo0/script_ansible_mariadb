@@ -1,0 +1,13 @@
+---
+  - name: Suppression de la base de données {{ item_db.Database }}
+    mysql_db:
+      name: "{{ item_db.Database }}"
+      login_user: root
+      login_password: btssio
+      state: absent
+    loop: "{{ users.list }}"
+    loop_control:
+      loop_var: name_bdd
+    when: (item_db.Database not in  exclude_databases|list) and (item_db.Database is match(name_bdd.identifiant+"_*"))
+
+...
