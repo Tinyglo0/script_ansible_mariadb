@@ -2,8 +2,8 @@
   - name: Suppression de la base de données {{ item_db.Database }}
     mysql_db:
       name: "{{ item_db.Database }}"
-      login_user: root
-      login_password: btssio
+      login_user: "{{ ROOT_MYSQL }}" 
+      login_password: "{{ PASSWORD_MYSQL }}"
       state: absent
     loop: "{{ users.list }}"
     loop_control:
